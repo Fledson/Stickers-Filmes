@@ -42,12 +42,18 @@ public class App {
         /******
          *** EXIBIR E MANIPULAR OS DADOS
          ******/
-        listaDeFilmes.stream().forEach(filme -> {
-            System.out.println("*** FILME ***");
-            System.out.println("NOME: " + filme.get("title"));
-            System.out.println("CLASSIFICAÇÃO: " + filme.get("imDbRating"));
-            System.out.println("POSTER: " + filme.get("image"));
-            System.out.println();
-        });
+        listaDeFilmes.stream().forEach(filme -> extracted(filme));
+    }
+
+    private static void extracted(Map<String, String> filme) {
+        System.out.println("\u001b[37m\u001b[46m***FILME***\u001b[m");
+        System.out.println("\u001b[1mNOME: \u001b[m" + filme.get("title"));
+        Double nota = Double.parseDouble(filme.get("imDbRating"));
+        System.out.println("\u001b[1mCLASSIFICAÇÃO: \u001b[m" + nota);
+        for (int i = 0; i < (nota.intValue() / 2); i++) {
+            System.out.print("🔥");
+        }
+        System.out.println("\n\u001b[1mPOSTER: \u001b[m" + filme.get("image"));
+        System.out.println();
     }
 }
