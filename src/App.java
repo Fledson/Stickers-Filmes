@@ -1,13 +1,11 @@
+import java.io.IOException;
 import java.net.URI;
 import java.net.http.HttpClient;
 import java.net.http.HttpRequest;
 import java.net.http.HttpResponse;
-import java.net.http.HttpResponse.BodyHandler;
 import java.net.http.HttpResponse.BodyHandlers;
 import java.util.List;
 import java.util.Map;
-
-import javax.sound.midi.Soundbank;
 
 public class App {
     public static void main(String[] args) throws Exception {
@@ -42,18 +40,53 @@ public class App {
         /******
          *** EXIBIR E MANIPULAR OS DADOS
          ******/
-        listaDeFilmes.stream().forEach(filme -> extracted(filme));
+        listaDeFilmes.stream().forEach(filme -> DescreverFilme(filme));
     }
 
-    private static void extracted(Map<String, String> filme) {
-        System.out.println("\u001b[37m\u001b[46m***FILME***\u001b[m");
-        System.out.println("\u001b[1mNOME: \u001b[m" + filme.get("title"));
+    private static void DescreverFilme(Map<String, String> filme) {
+        String nomeFilme = filme.get("title").replace(":", "-");
         Double nota = Double.parseDouble(filme.get("imDbRating"));
+        String posterFilme = filme.get("image").replace("._V1_UX128_CR0,3,128,176_AL_", "");
+
+        ExibirNoConsole(nomeFilme, nota, posterFilme);
+        GerarFigurinhas(nomeFilme, nota, posterFilme);
+    }
+
+    private static void ExibirNoConsole(String nomeFilme, Double nota, String posterFilme) {
+        System.out.println("\u001b[37m\u001b[46m***FILME***\u001b[m");
+
+        System.out.println("\u001b[1mNOME: \u001b[m" + nomeFilme);
+
         System.out.println("\u001b[1mCLASSIFICAÇÃO: \u001b[m" + nota);
+
         for (int i = 0; i < (nota.intValue() / 2); i++) {
             System.out.print("🔥");
         }
-        System.out.println("\n\u001b[1mPOSTER: \u001b[m" + filme.get("image"));
+        System.out.println("\n\u001b[1mPOSTER: \u001b[m" + posterFilme);
         System.out.println();
+    }
+
+    private static void GerarFigurinhas(String nomeFilme, Double nota, String posterFilme) {
+        try {
+            String classificacao = ClassificarFilme(nota);
+            new GeradorDeFigurinhas().criar(posterFilme, nomeFilme, classificacao);
+        } catch (IOException e) {
+            // TODO Auto-generated catch block
+            System.err.println(String.format("Não foi possivel gerar a figurinha do filme %s", nomeFilme));
+            System.err.println(String.format("Devido ao erro %s", e.getMessage()));
+            e.printStackTrace();
+        }
+    }
+
+    private static String ClassificarFilme(Double nota) {
+        String texto = "";
+        if (nota < 7) {
+            texto = "Filme Ruim";
+        } else if (nota >= 7 && nota <= 8.5) {
+            texto = "Filme marrom";
+        } else if (nota > 8.5) {
+            texto = "Filme Top";
+        }
+        return texto;
     }
 }
