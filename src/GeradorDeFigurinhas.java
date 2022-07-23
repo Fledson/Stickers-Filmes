@@ -40,7 +40,7 @@ public class GeradorDeFigurinhas {
     /**
      * Configurando tamanho da fonte do TExto
      */
-    var fonte = new Font("Fira Code", Font.BOLD, 150);
+    var fonte = new Font("Fira Code", Font.BOLD, 100);
     graphics.setFont(fonte);
     graphics.setColor(Color.RED);
     /***

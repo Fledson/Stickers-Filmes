@@ -1,92 +1,48 @@
 import java.io.IOException;
-import java.net.URI;
-import java.net.http.HttpClient;
-import java.net.http.HttpRequest;
-import java.net.http.HttpResponse;
-import java.net.http.HttpResponse.BodyHandlers;
 import java.util.List;
-import java.util.Map;
 
 public class App {
     public static void main(String[] args) throws Exception {
-        /*******
-         *** FAZER CONEXÃO COM A API E BUSCAR O TOP DE 250 FILMES
-         *******/
+        // DEFINE A API
+        // String url = "https://api.mocki.io/v2/549a5d8b/Top250Movies";
+        String url = "https://api.nasa.gov/planetary/apod?api_key=9Lr6FmEEhcagYve1NwIfzT5ej6gcLhQ49YV5MFb4&start_date=2022-06-12&end_date=2022-06-14";
+        var http = new ClienteHttp();
+        String json = http.consumirApi(url);
 
-        // definindo a url a ser consumida
-        String url = "https://alura-imdb-api.herokuapp.com/movies";
+        // Chama o Extrador
+        ExtratorDeConteudo extrator = new ExtratorDeConteudoDaNasa();
+        List<Conteudo> listaDeConteudos = extrator.extrairConteudos(json);
 
-        // criando uma URI
-        URI endereco = URI.create(url);
-
-        // criando um novo cliente
-        var client = HttpClient.newHttpClient();
-
-        // fazendo a requisição
-        var request = HttpRequest.newBuilder(endereco).GET().build();
-
-        // obtendo a resposta e convertendo em uma String
-        HttpResponse<String> response = client.send(request, BodyHandlers.ofString());
-        // armazenando body
-        var body = response.body();
-
-        /******
-         *** ABSTRAIR OS DADOS (TITULO, POSTER, CLASSIFICAÇÃO)
-         ******/
-        // declarando uma classe pronta para separar os filmes em uma lista
-        JsonParser parser = new JsonParser();
-        // usando a classe para alimentar minha lista
-        List<Map<String, String>> listaDeFilmes = parser.parse(body);
-        /******
-         *** EXIBIR E MANIPULAR OS DADOS
-         ******/
-        listaDeFilmes.stream().forEach(filme -> DescreverFilme(filme));
+        listaDeConteudos.stream().forEach(conteudo -> DescreverConteudo(conteudo));
     }
 
-    private static void DescreverFilme(Map<String, String> filme) {
-        String nomeFilme = filme.get("title").replace(":", "-");
-        Double nota = Double.parseDouble(filme.get("imDbRating"));
-        String posterFilme = filme.get("image").replace("._V1_UX128_CR0,3,128,176_AL_", "");
+    private static void DescreverConteudo(Conteudo conteudo) {
+        String nomeConteudo = conteudo.getConteudo();
+        String posterConteudo = conteudo.getUrlImage();
 
-        ExibirNoConsole(nomeFilme, nota, posterFilme);
-        GerarFigurinhas(nomeFilme, nota, posterFilme);
+        ExibirNoConsole(nomeConteudo, posterConteudo);
+        GerarFigurinhas(nomeConteudo, posterConteudo);
     }
 
-    private static void ExibirNoConsole(String nomeFilme, Double nota, String posterFilme) {
+    private static void ExibirNoConsole(String nomeConteudo, String imagemConteudo) {
         System.out.println("\u001b[37m\u001b[46m***FILME***\u001b[m");
 
-        System.out.println("\u001b[1mNOME: \u001b[m" + nomeFilme);
+        System.out.println("\u001b[1mNOME: \u001b[m" + nomeConteudo);
 
-        System.out.println("\u001b[1mCLASSIFICAÇÃO: \u001b[m" + nota);
+        System.out.println("\n\u001b[1mPOSTER: \u001b[m" + imagemConteudo);
 
-        for (int i = 0; i < (nota.intValue() / 2); i++) {
-            System.out.print("🔥");
-        }
-        System.out.println("\n\u001b[1mPOSTER: \u001b[m" + posterFilme);
         System.out.println();
     }
 
-    private static void GerarFigurinhas(String nomeFilme, Double nota, String posterFilme) {
+    private static void GerarFigurinhas(String nomeConteudo, String imagemConteudo) {
         try {
-            String classificacao = ClassificarFilme(nota);
-            new GeradorDeFigurinhas().criar(posterFilme, nomeFilme, classificacao);
+            new GeradorDeFigurinhas().criar(imagemConteudo, nomeConteudo, "TOPZEIRA");
         } catch (IOException e) {
             // TODO Auto-generated catch block
-            System.err.println(String.format("Não foi possivel gerar a figurinha do filme %s", nomeFilme));
+            System.err.println(String.format("Não foi possivel gerar a figurinha do filme %s", nomeConteudo));
             System.err.println(String.format("Devido ao erro %s", e.getMessage()));
             e.printStackTrace();
         }
     }
 
-    private static String ClassificarFilme(Double nota) {
-        String texto = "";
-        if (nota < 7) {
-            texto = "Filme Ruim";
-        } else if (nota >= 7 && nota <= 8.5) {
-            texto = "Filme marrom";
-        } else if (nota > 8.5) {
-            texto = "Filme Top";
-        }
-        return texto;
-    }
 }
